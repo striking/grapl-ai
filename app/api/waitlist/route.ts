@@ -1,45 +1,67 @@
 import { NextResponse } from 'next/server';
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIILh_VC9k-NWo3lU_4H5SXPiP_ZhmOCyyqWCdIaE7_TyS8-YY2iRxFnvcdYzf0snM/exec';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://spwkdgmnedaqlkzpambv.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
+
+const supabaseHeaders = {
+  'apikey': SUPABASE_ANON_KEY,
+  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+  'Content-Type': 'application/json',
+};
 
 export async function POST(request: Request) {
+  if (!SUPABASE_ANON_KEY) {
+    console.error('SUPABASE_ANON_KEY not configured');
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 });
+  }
+
   try {
     const body = await request.json();
-    
-    // Forward the request to Google Apps Script
-    // We must follow redirects because Apps Script redirects to a content serving URL
-    const response = await fetch(APPS_SCRIPT_URL, {
+    const { email, product, referrer, utmSource, utmMedium, utmCampaign } = body;
+
+    if (!email) {
+      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    }
+
+    // Look up product_id from slug (optional — leads work without it)
+    let productId: number | null = null;
+    if (product) {
+      const productRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/products?slug=eq.${encodeURIComponent(product)}&select=id&limit=1`,
+        { headers: supabaseHeaders }
+      );
+      if (productRes.ok) {
+        const products = await productRes.json();
+        if (products.length > 0) {
+          productId = products[0].id;
+        }
+      }
+    }
+
+    // Insert lead
+    const leadRes = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-      redirect: 'follow',
+      headers: { ...supabaseHeaders, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        email,
+        product_id: productId,
+        source: 'waitlist',
+        referrer: referrer || null,
+        utm_source: utmSource || null,
+        utm_medium: utmMedium || null,
+        utm_campaign: utmCampaign || null,
+      }),
     });
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: `Upstream error: ${response.status}` },
-        { status: 502 }
-      );
+    if (!leadRes.ok) {
+      const err = await leadRes.text();
+      console.error('Supabase insert failed:', err);
+      return NextResponse.json({ error: 'Failed to save' }, { status: 502 });
     }
 
-    // Apps Script might return HTML or JSON depending on how it's written
-    // We'll try to parse as JSON, but if it fails, we assume success if status was 200
-    const text = await response.text();
-    try {
-      const data = JSON.parse(text);
-      return NextResponse.json(data);
-    } catch (e) {
-      // If valid 200 OK but not JSON, treat as success (common with simple Apps Scripts)
-      console.log('Apps Script returned non-JSON:', text.substring(0, 100));
-      return NextResponse.json({ ok: true, message: "Submission accepted" });
-    }
+    return NextResponse.json({ success: true, message: "You're on the list!" });
   } catch (error) {
-    console.error('Waitlist proxy error:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+    console.error('Waitlist error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

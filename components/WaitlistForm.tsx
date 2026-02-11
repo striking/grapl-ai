@@ -2,36 +2,11 @@
 
 import { useState } from "react";
 
-// Waitlist API endpoint - deployed Google Apps Script web app
-// To update: Deploy new version from Google Apps Script and update this URL
-const WAITLIST_API_URL = "/api/waitlist";
-
-interface WaitlistSubmission {
-  email: string;
-  product: string;
-  referrer?: string;
-  utmSource?: string;
-  utmMedium?: string;
-  utmCampaign?: string;
+interface WaitlistFormProps {
+  product?: string; // Product slug — matches Supabase products.slug
 }
 
-async function submitToWaitlist(data: WaitlistSubmission): Promise<{ success: boolean; message?: string }> {
-  const response = await fetch(WAITLIST_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-  
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  
-  return response.json();
-}
-
-export function WaitlistForm() {
+export function WaitlistForm({ product = "grapl-ai" }: WaitlistFormProps) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
@@ -40,19 +15,23 @@ export function WaitlistForm() {
     setStatus("loading");
     
     try {
-      // Get UTM params from URL if present
       const urlParams = new URLSearchParams(window.location.search);
-      const referrer = document.referrer || "";
-      
-      await submitToWaitlist({
-        email,
-        product: "grapl-ai",
-        referrer,
-        utmSource: urlParams.get("utm_source") || undefined,
-        utmMedium: urlParams.get("utm_medium") || undefined,
-        utmCampaign: urlParams.get("utm_campaign") || undefined,
+
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          product,
+          referrer: document.referrer || undefined,
+          utmSource: urlParams.get("utm_source") || undefined,
+          utmMedium: urlParams.get("utm_medium") || undefined,
+          utmCampaign: urlParams.get("utm_campaign") || undefined,
+        }),
       });
-      
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
       setStatus("success");
       setEmail("");
     } catch (error) {

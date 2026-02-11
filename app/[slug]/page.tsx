@@ -92,7 +92,7 @@ export default async function ExperimentPage({ params }: PageProps) {
               </h2>
               <p className="mt-2 text-gray-400">Currently in beta. Get early access.</p>
               <div className="mt-6 max-w-sm mx-auto">
-                <WaitlistForm />
+                <WaitlistForm product={slug} />
               </div>
             </div>
           ) : (
@@ -102,7 +102,7 @@ export default async function ExperimentPage({ params }: PageProps) {
                 {experiment.name} is still in development. Join the waitlist to be first in line.
               </p>
               <div className="mt-6 max-w-sm mx-auto">
-                <WaitlistForm />
+                <WaitlistForm product={slug} />
               </div>
             </div>
           )}
