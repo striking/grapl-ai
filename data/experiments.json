@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "quotemate",
+    "name": "QuoteMate",
+    "tagline": "Voice to Quote in Minutes",
+    "description": "Speak your job details, get a professional quote. Built for tradies who hate paperwork.",
+    "status": "beta",
+    "icon": "🎤"
+  },
+  {
+    "slug": "invoice-scanner",
+    "name": "Invoice Scanner",
+    "tagline": "Snap. Extract. Done.",
+    "description": "Take a photo of any invoice, get structured data instantly. No more manual entry.",
+    "status": "coming-soon",
+    "icon": "📄"
+  },
+  {
+    "slug": "site-diary",
+    "name": "Site Diary",
+    "tagline": "Voice Notes That Organize Themselves",
+    "description": "Record site updates on the go. AI organizes them into daily reports automatically.",
+    "status": "coming-soon",
+    "icon": "📋"
+  }
+]
