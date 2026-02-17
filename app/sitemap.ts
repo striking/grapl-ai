@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
-import { experiments } from '@/data/experiments'
+import { getExperiments } from '@/lib/experiments'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://grapl.ai'
 
   const baseRoutes: MetadataRoute.Sitemap = [
@@ -13,12 +13,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
-  const experimentRoutes: MetadataRoute.Sitemap = experiments.map((experiment) => ({
-    url: `${baseUrl}/${experiment.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly',
-    priority: 0.8,
-  }))
+  try {
+    const experiments = await getExperiments()
+    const experimentRoutes: MetadataRoute.Sitemap = experiments.map((experiment) => ({
+      url: `${baseUrl}/${experiment.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }))
 
-  return [...baseRoutes, ...experimentRoutes]
+    return [...baseRoutes, ...experimentRoutes]
+  } catch (error) {
+    console.error('Error generating sitemap:', error)
+    return baseRoutes
+  }
 }
