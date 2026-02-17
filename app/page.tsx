@@ -2,8 +2,11 @@ import { ExperimentCard } from "@/components/ExperimentCard";
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { getExperiments } from "@/lib/experiments";
 
-export default function Home() {
-  const experiments = getExperiments();
+// Enable ISR with 60-second revalidation
+export const revalidate = 60;
+
+export default async function Home() {
+  const experiments = await getExperiments();
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -87,7 +90,7 @@ export default function Home() {
               </p>
             </div>
             <div className="text-sm text-gray-400">
-              Updated weekly • Join the waitlist for early access
+              {experiments.length} {experiments.length === 1 ? 'Product' : 'Products'} Live • Updated weekly
             </div>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

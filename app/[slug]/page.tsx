@@ -3,18 +3,21 @@ import Link from "next/link";
 import { getExperiment, getExperiments } from "@/lib/experiments";
 import { WaitlistForm } from "@/components/WaitlistForm";
 
+// Enable ISR with 60-second revalidation
+export const revalidate = 60;
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-  const experiments = getExperiments();
+  const experiments = await getExperiments();
   return experiments.map((e) => ({ slug: e.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const experiment = getExperiment(slug);
+  const experiment = await getExperiment(slug);
   if (!experiment) return {};
   
   return {
@@ -36,7 +39,7 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function ExperimentPage({ params }: PageProps) {
   const { slug } = await params;
-  const experiment = getExperiment(slug);
+  const experiment = await getExperiment(slug);
 
   if (!experiment) {
     notFound();
@@ -66,9 +69,9 @@ export default async function ExperimentPage({ params }: PageProps) {
             <h1 className="text-balance text-4xl font-semibold text-white font-display">
               {experiment.name}
             </h1>
-            {experiment.status === "beta" ? (
+            {experiment.status === "beta" || experiment.status === "live" ? (
               <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
-                Beta
+                {experiment.status === "live" ? "Live" : "Beta"}
               </span>
             ) : (
               <span className="inline-flex items-center rounded-full bg-gray-500/10 px-3 py-1 text-sm font-medium text-gray-400 ring-1 ring-inset ring-gray-500/20">
@@ -85,12 +88,14 @@ export default async function ExperimentPage({ params }: PageProps) {
         {/* CTA */}
         <div className="mt-12 rounded-2xl border border-gray-800/80 bg-gray-900/70 p-8 shadow-lg shadow-black/30 backdrop-blur">
           <div className="mb-6 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
-          {experiment.status === "beta" ? (
+          {experiment.status === "beta" || experiment.status === "live" ? (
             <div className="text-center">
               <h2 className="text-xl font-semibold text-white font-display">
                 Try {experiment.name}
               </h2>
-              <p className="mt-2 text-gray-400">Currently in beta. Get early access.</p>
+              <p className="mt-2 text-gray-400">
+                {experiment.status === "live" ? "Now available." : "Currently in beta. Get early access."}
+              </p>
               <div className="mt-6 max-w-sm mx-auto">
                 <WaitlistForm product={slug} />
               </div>

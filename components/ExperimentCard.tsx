@@ -33,11 +33,11 @@ export function ExperimentCard({ experiment }: ExperimentCardProps) {
   );
 }
 
-function StatusBadge({ status }: { status: "beta" | "coming-soon" }) {
-  if (status === "beta") {
+function StatusBadge({ status }: { status: string }) {
+  if (status === "beta" || status === "live") {
     return (
       <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
-        Beta
+        {status === "live" ? "Live" : "Beta"}
       </span>
     );
   }
