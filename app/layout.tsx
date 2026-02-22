@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -67,6 +68,13 @@ export default function RootLayout({
         className={`${manrope.variable} ${spaceGrotesk.variable} font-sans antialiased bg-gray-900 text-white`}
       >
         {children}
+        {/* Plausible Analytics — privacy-first, no cookies, GDPR-compliant */}
+        <Script
+          defer
+          data-domain="grapl.ai,defecttrack.grapl.ai"
+          src="https://plausible.io/js/script.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
