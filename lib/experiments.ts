@@ -103,6 +103,10 @@ const fallbackExperiments: Experiment[] = [
 ];
 
 export async function getExperiments(): Promise<Experiment[]> {
+  if (!supabase) {
+    return fallbackExperiments;
+  }
+
   // Check if we're in a build environment or if Supabase vars are missing
   if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production') {
     // In production build, try Supabase but fall back gracefully
@@ -156,6 +160,10 @@ export async function getExperiments(): Promise<Experiment[]> {
 }
 
 export async function getExperiment(slug: string): Promise<Experiment | undefined> {
+  if (!supabase) {
+    return fallbackExperiments.find((e) => e.slug === slug);
+  }
+
   try {
     const { data, error } = await supabase
       .from('products')
