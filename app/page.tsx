@@ -5,11 +5,52 @@ import { getExperiments } from "@/lib/experiments";
 // Enable ISR with 60-second revalidation
 export const revalidate = 60;
 
+// JSON-LD structured data mirroring the visible on-page content
+// (brand name, description, and "Built in Brisbane"). Helps search
+// engines resolve the grapl.ai brand entity and site name.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://grapl.ai/#organization",
+      name: "grapl.ai",
+      alternateName: "Grapl",
+      url: "https://grapl.ai",
+      logo: "https://grapl.ai/apple-touch-icon.png",
+      description:
+        "Small tools. Big impact. AI micro-apps that help you grapple with everyday challenges.",
+      foundingLocation: {
+        "@type": "Place",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Brisbane",
+          addressCountry: "AU",
+        },
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://grapl.ai/#website",
+      name: "grapl.ai",
+      alternateName: "Grapl",
+      url: "https://grapl.ai",
+      description:
+        "Small tools. Big impact. AI micro-apps that help you grapple with everyday challenges.",
+      publisher: { "@id": "https://grapl.ai/#organization" },
+    },
+  ],
+};
+
 export default async function Home() {
   const experiments = await getExperiments();
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero Section */}
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(16,185,129,0.18),_transparent_55%)]" />
